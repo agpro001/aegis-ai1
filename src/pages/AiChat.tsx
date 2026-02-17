@@ -1,18 +1,26 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { MessageSquare, Send, Bot, User } from "lucide-react";
+import { MessageSquare, Send, Bot, User, Trash2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppLayout } from "@/components/AppLayout";
-import { supabase } from "@/integrations/supabase/client";
+import ReactMarkdown from "react-markdown";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/threat-chat`;
 
+const quickPrompts = [
+  "What is a flash loan attack?",
+  "Analyze the latest DeFi exploits",
+  "How does oracle manipulation work?",
+  "What are rug pull red flags?",
+  "Explain reentrancy vulnerabilities",
+];
+
 const AiChat = () => {
   const [messages, setMessages] = useState<Msg[]>([
-    { role: "assistant", content: "Hello, Commander. I'm your Aegis AI threat analyst. Ask me about any DeFi security concern, smart contract vulnerability, or paste a tweet/article for real-time threat analysis." },
+    { role: "assistant", content: "**Hello, Commander.** I'm your Aegis AI threat analyst.\n\nI can help you with:\n- 🔍 Analyzing DeFi security threats\n- 🛡️ Smart contract vulnerability assessment\n- 📰 Real-time threat intelligence\n- 💡 Security best practices\n\nAsk me anything or use a quick prompt below." },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,9 +30,10 @@ const AiChat = () => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const send = async () => {
-    if (!input.trim() || loading) return;
-    const userMsg: Msg = { role: "user", content: input.trim() };
+  const send = async (text?: string) => {
+    const msg = text || input.trim();
+    if (!msg || loading) return;
+    const userMsg: Msg = { role: "user", content: msg };
     const allMessages = [...messages, userMsg];
     setMessages(allMessages);
     setInput("");
@@ -80,20 +89,29 @@ const AiChat = () => {
         }
       }
     } catch (e: any) {
-      setMessages((prev) => [...prev, { role: "assistant", content: `Error: ${e.message}` }]);
+      setMessages((prev) => [...prev, { role: "assistant", content: `⚠️ **Error:** ${e.message}` }]);
     } finally {
       setLoading(false);
     }
   };
 
+  const clearChat = () => {
+    setMessages([messages[0]]);
+  };
+
   return (
     <AppLayout>
-      <div className="flex h-[calc(100vh-5rem)] flex-col">
-        <div className="mb-4">
-          <h1 className="font-display text-2xl font-bold text-foreground flex items-center gap-3">
-            <MessageSquare className="h-7 w-7 text-primary" /> AI Threat Analyst
-          </h1>
-          <p className="font-body text-muted-foreground">Real-time threat analysis powered by Lovable AI</p>
+      <div className="flex h-[calc(100vh-7rem)] flex-col">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h1 className="font-display text-2xl font-bold text-foreground flex items-center gap-3">
+              <MessageSquare className="h-7 w-7 text-primary" /> AI Threat Analyst
+            </h1>
+            <p className="font-body text-muted-foreground">Real-time threat analysis powered by AI</p>
+          </div>
+          <Button size="sm" variant="ghost" onClick={clearChat} className="gap-1 text-xs text-muted-foreground">
+            <Trash2 className="h-3 w-3" /> Clear
+          </Button>
         </div>
 
         {/* Messages */}
@@ -111,13 +129,19 @@ const AiChat = () => {
                 </div>
               )}
               <div
-                className={`max-w-[70%] rounded-xl px-4 py-3 font-body text-sm leading-relaxed ${
+                className={`max-w-[75%] rounded-xl px-4 py-3 text-sm leading-relaxed ${
                   msg.role === "user"
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-primary text-primary-foreground font-body"
                     : "bg-secondary text-foreground"
                 }`}
               >
-                {msg.content}
+                {msg.role === "assistant" ? (
+                  <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-li:my-0 prose-headings:my-2 font-body">
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
+                ) : (
+                  msg.content
+                )}
               </div>
               {msg.role === "user" && (
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/10">
@@ -126,13 +150,44 @@ const AiChat = () => {
               )}
             </motion.div>
           ))}
+          {loading && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                <Bot className="h-4 w-4 text-primary animate-pulse" />
+              </div>
+              <div className="rounded-xl bg-secondary px-4 py-3">
+                <span className="inline-flex gap-1">
+                  <span className="h-2 w-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="h-2 w-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="h-2 w-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
+                </span>
+              </div>
+            </motion.div>
+          )}
           <div ref={bottomRef} />
         </div>
+
+        {/* Quick prompts */}
+        {messages.length <= 1 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {quickPrompts.map((p) => (
+              <Button
+                key={p}
+                size="sm"
+                variant="outline"
+                onClick={() => send(p)}
+                className="text-xs font-body gap-1"
+              >
+                <Sparkles className="h-3 w-3" /> {p}
+              </Button>
+            ))}
+          </div>
+        )}
 
         {/* Input */}
         <form
           onSubmit={(e) => { e.preventDefault(); send(); }}
-          className="mt-4 flex gap-3"
+          className="mt-3 flex gap-3"
         >
           <Input
             value={input}

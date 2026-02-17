@@ -109,6 +109,7 @@ const LandingPage = () => {
             <Button
               size="lg"
               variant="outline"
+              onClick={() => navigate("/demo")}
               className="border-primary/30 font-body text-lg"
             >
               <Zap className="mr-2 h-5 w-5 text-neon-yellow" /> Watch Demo
