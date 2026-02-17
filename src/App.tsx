@@ -12,6 +12,7 @@ import Sentinels from "./pages/Sentinels";
 import BlackBox from "./pages/BlackBox";
 import AiChat from "./pages/AiChat";
 import SettingsPage from "./pages/SettingsPage";
+import DemoPage from "./pages/DemoPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<LandingPage />} />
+              <Route path="/demo" element={<DemoPage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/sentinels" element={<Sentinels />} />

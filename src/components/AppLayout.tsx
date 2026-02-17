@@ -6,6 +6,7 @@ import {
   ChevronLeft, ChevronRight, MessageSquare
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { BackButton } from "@/components/BackButton";
 import { useAuth } from "@/components/AuthProvider";
 import { cn } from "@/lib/utils";
 
@@ -107,7 +108,12 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
 
       {/* Main */}
       <main className="flex-1 overflow-y-auto cyber-grid">
-        <div className="p-6 lg:p-8">{children}</div>
+        <div className="p-6 lg:p-8">
+          <div className="mb-4">
+            <BackButton />
+          </div>
+          {children}
+        </div>
       </main>
     </div>
   );
