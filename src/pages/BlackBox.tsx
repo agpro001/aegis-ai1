@@ -302,6 +302,7 @@ const BlackBox = () => {
                       <TableHead className="font-display text-xs">Source</TableHead>
                       <TableHead className="font-display text-xs">Severity</TableHead>
                       <TableHead className="font-display text-xs">Status</TableHead>
+                      <TableHead className="font-display text-xs">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -328,6 +329,38 @@ const BlackBox = () => {
                           <Badge className={`font-mono text-[10px] ${statusColors[inc.status] || ""}`}>
                             {inc.status?.toUpperCase()}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {inc.status !== "resolved" && (
+                            <div className="flex gap-1">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 px-2 text-[10px] text-neon-green hover:bg-neon-green/10"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  await supabase.from("incidents").update({ status: "resolved", resolved_at: new Date().toISOString() }).eq("id", inc.id);
+                                  toast.success("Incident resolved");
+                                  loadIncidents();
+                                }}
+                              >
+                                Resolve
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 px-2 text-[10px] text-muted-foreground hover:bg-secondary"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  await supabase.from("incidents").update({ status: "resolved", resolved_at: new Date().toISOString() }).eq("id", inc.id);
+                                  toast.success("Incident dismissed");
+                                  loadIncidents();
+                                }}
+                              >
+                                Dismiss
+                              </Button>
+                            </div>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
