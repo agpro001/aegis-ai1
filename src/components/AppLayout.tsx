@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -8,6 +8,7 @@ import {
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { BackButton } from "@/components/BackButton";
 import { useAuth } from "@/components/AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -22,8 +23,33 @@ const navItems = [
 
 export const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const [collapsed, setCollapsed] = useState(false);
-  const { signOut } = useAuth();
+  const [alertCount, setAlertCount] = useState(0);
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) return;
+
+    const loadAlertCount = async () => {
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { count } = await supabase
+        .from("alerts")
+        .select("*", { count: "exact", head: true })
+        .gte("sent_at", oneDayAgo);
+      setAlertCount(count || 0);
+    };
+
+    loadAlertCount();
+
+    const channel = supabase
+      .channel("alert-badge")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "alerts" }, () => {
+        loadAlertCount();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -63,7 +89,7 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
               to={item.to}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 font-body text-sm transition-all",
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 font-body text-sm transition-all relative",
                   isActive
                     ? "bg-primary/10 text-primary border-glow-cyan"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -83,6 +109,11 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
                   </motion.span>
                 )}
               </AnimatePresence>
+              {item.to === "/alerts" && alertCount > 0 && (
+                <span className="absolute right-2 top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 font-mono text-[10px] font-bold text-destructive-foreground">
+                  {alertCount > 99 ? "99+" : alertCount}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>

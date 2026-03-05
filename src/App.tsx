@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/components/AuthProvider";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import LandingPage from "./pages/LandingPage";
 import AuthPage from "./pages/AuthPage";
 import Dashboard from "./pages/Dashboard";
@@ -31,13 +32,13 @@ const App = () => (
               <Route path="/" element={<LandingPage />} />
               <Route path="/demo" element={<DemoPage />} />
               <Route path="/auth" element={<AuthPage />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/sentinels" element={<Sentinels />} />
-              <Route path="/blackbox" element={<BlackBox />} />
-              <Route path="/chat" element={<AiChat />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/alerts" element={<AlertsPage />} />
-              <Route path="/threat-map" element={<ThreatMap />} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/sentinels" element={<ProtectedRoute><Sentinels /></ProtectedRoute>} />
+              <Route path="/blackbox" element={<ProtectedRoute><BlackBox /></ProtectedRoute>} />
+              <Route path="/chat" element={<ProtectedRoute><AiChat /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+              <Route path="/alerts" element={<ProtectedRoute><AlertsPage /></ProtectedRoute>} />
+              <Route path="/threat-map" element={<ProtectedRoute><ThreatMap /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
